@@ -296,6 +296,16 @@
     </div>
 
     <script>
+        // 禁止所有链接跳转到浏览器
+        document.addEventListener('click', function(e) {
+          if (e.target.tagName === 'A') {
+            e.preventDefault(); // 阻止默认跳转
+          }
+        });
+        // 禁止window.open调用浏览器
+        window.open = function(url) {
+          // 空函数，禁用跳转
+        };
         // 标签切换（含SVG示意图切换）
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -607,3 +617,4 @@
 </body>
 
 </html>
+
