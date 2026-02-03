@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角形计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+        }
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            text-align: center;
+            color: #1e88e5;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #e0e0e0;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: #1e88e5;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .param-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-calc {
+            background: #1e88e5;
+            color: white;
+            flex: 2;
+        }
+        .btn-reset {
+            background: #e0e0e0;
+            color: #333;
+            flex: 1;
+        }
+        .btn-calculator {
+            background: #4caf50;
+            color: white;
+            flex: 1;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        .result h3 {
+            color: #1e88e5;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .result p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        .note {
+            margin-top: 20px;
+            padding: 10px;
+            background: #fff3e0;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #ff9800;
+        }
+        .triangle-img {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* 修复：移除!important，保证JS能控制display */
+        .triangle-img svg {
+            max-width: 80%;
+            height: auto;
+            margin: 0 auto;
+            transform: translateX(-2%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">三角形计算</div>
+        
+        <!-- 动态切换的三角形示意图 -->
+        <div class="triangle-img">
+            <!-- 直角三角形图（默认显示） -->
+            <svg id="right-svg" width="300" height="200">
+                <path d="M25,180 L275,180 L275,60 L25,180 Z" fill="none" stroke="#1e88e5" stroke-width="2"/>
+                <path d="M275,180 L275,60" stroke="#4caf50" stroke-width="2"/>
+                <text x="150" y="195" fill="#1e88e5" font-size="16">b</text>
+                <text x="285" y="120" fill="#1e88e5" font-size="16">a</text>
+                <text x="125" y="110" fill="#1e88e5" font-size="16">c</text>
+                <text x="20" y="195" fill="#1e88e5" font-size="16">A</text>
+                <text x="270" y="50" fill="#1e88e5" font-size="16">B</text>
+                <text x="285" y="195" fill="#1e88e5" font-size="16">C</text>
+                <rect x="265" y="170" width="10" height="10" fill="#1e88e5"/>
+            </svg>
+
+            <!-- 等腰三角形图（默认隐藏） -->
+            <svg id="isosceles-svg" width="300" height="200" style="display:none;">
+                <path d="M50,180 L150,60 L250,180 L50,180 Z" fill="none" stroke="#1e88e5" stroke-width="2"/>
+                <path d="M150,60 L150,180" stroke="#4caf50" stroke-width="2"/>
+                <text x="150" y="195" fill="#1e88e5" font-size="16">b</text>
+                <text x="85" y="110" fill="#1e88e5" font-size="16">c</text>
+                <text x="215" y="110" fill="#1e88e5" font-size="16">a</text>
+                <text x="140" y="130" fill="#4caf50" font-size="14">h</text>
+                <text x="40" y="195" fill="#1e88e5" font-size="16">A</text>
+                <text x="145" y="50" fill="#1e88e5" font-size="16">B</text>
+                <text x="255" y="195" fill="#1e88e5" font-size="16">C</text>
+                <rect x="145" y="175" width="10" height="10" fill="#1e88e5"/>
+            </svg>
+
+            <!-- 普通三角形图（默认隐藏） -->
+            <svg id="normal-svg" width="300" height="200" style="display:none;">
+                <path d="M25,180 L225,180 L200,60 L25,180 Z" fill="none" stroke="#1e88e5" stroke-width="2"/>
+                <path d="M200,180 L200,60" stroke="#4caf50" stroke-width="2"/>
+                <text x="125" y="195" fill="#1e88e5" font-size="16">b</text>
+                <text x="100" y="110" fill="#1e88e5" font-size="16">c</text>
+                <text x="225" y="120" fill="#1e88e5" font-size="16">a</text>
+                <text x="190" y="130" fill="#4caf50" font-size="14">h</text>
+                <text x="20" y="195" fill="#1e88e5" font-size="16">A</text>
+                <text x="200" y="50" fill="#1e88e5" font-size="16">B</text>
+                <text x="235" y="195" fill="#1e88e5" font-size="16">C</text>
+                <rect x="195" y="175" width="10" height="10" fill="#1e88e5"/>
+            </svg>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="right">直角</button>
+            <button class="tab" data-tab="isosceles">等腰</button>
+            <button class="tab" data-tab="normal">普通</button>
+        </div>
+
+        <!-- 直角三角形 -->
+        <div class="tab-content active" id="right">
+            <div class="param-group">
+                <label>a 边长 (直角边):</label>
+                <input type="number" id="right-a" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>b 边长 (直角边):</label>
+                <input type="number" id="right-b" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>c 边长 (斜边):</label>
+                <input type="number" id="right-c" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>A 角角度 (°):</label>
+                <input type="number" id="right-angleA" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>B 角角度 (°):</label>
+                <input type="number" id="right-angleB" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>面积:</label>
+                <input type="number" id="right-area" placeholder="自动计算" readonly>
+            </div>
+        </div>
+
+        <!-- 等腰三角形 -->
+        <div class="tab-content" id="isosceles">
+            <div class="param-group">
+                <label>腰长 (a和c):</label>
+                <input type="number" id="iso-ac" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>b 边长 (底边):</label>
+                <input type="number" id="iso-b" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>底角角度 (°):</label>
+                <input type="number" id="iso-base-angle" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>顶角B角度 (°):</label>
+                <input type="number" id="iso-top-angle" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>高h:</label>
+                <input type="number" id="iso-h" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>面积:</label>
+                <input type="number" id="iso-area" placeholder="自动计算" readonly>
+            </div>
+        </div>
+
+        <!-- 普通三角形 -->
+        <div class="tab-content" id="normal">
+            <div class="param-group">
+                <label>a 边长:</label>
+                <input type="number" id="norm-a" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>b 边长:</label>
+                <input type="number" id="norm-b" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>c 边长:</label>
+                <input type="number" id="norm-c" placeholder="输入数值">
+            </div>
+            <div class="param-group">
+                <label>A 角角度 (°):</label>
+                <input type="number" id="norm-angleA" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>B 角角度 (°):</label>
+                <input type="number" id="norm-angleB" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>C 角角度 (°):</label>
+                <input type="number" id="norm-angleC" placeholder="自动计算">
+            </div>
+            <div class="param-group">
+                <label>面积:</label>
+                <input type="number" id="norm-area" placeholder="自动计算" readonly>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-calculator">计算器</button>
+            <button class="btn btn-reset">清空</button>
+            <button class="btn btn-calc">计算</button>
+        </div>
+
+        <div class="result">
+            <h3>计算结果</h3>
+            <div id="result-content">请输入至少两项参数后点击计算</div>
+        </div>
+
+        <div class="note">
+            <p>• 顶部示意图随标签切换，标注与计算参数一一对应</p>
+            <p>• 点计算后，实际参与了计算的属性(基准已知参数)，输入框会变色。其他输入框是算出结果后、按系统设置的小数精度四舍五入后的结果</p>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换（含SVG示意图切换）
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const svgs = {
+            right: document.getElementById('right-svg'),
+            isosceles: document.getElementById('isosceles-svg'),
+            normal: document.getElementById('normal-svg')
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 切换标签和内容
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+
+                // 隐藏所有SVG，只显示当前标签对应的
+                Object.keys(svgs).forEach(key => {
+                    svgs[key].style.display = key === tabId ? 'block' : 'none';
+                });
+            });
+        });
+
+        // 清空按钮
+        document.querySelector('.btn-reset').addEventListener('click', () => {
+            document.querySelectorAll('input').forEach(input => {
+                input.value = '';
+                input.style.borderColor = '#ddd';
+            });
+            document.getElementById('result-content').innerHTML = '请输入至少两项参数后点击计算';
+        });
+
+        // 计算器按钮（模拟）
+        document.querySelector('.btn-calculator').addEventListener('click', () => {
+            alert('简易计算器功能：\n支持 + - × ÷ 运算\n示例：25+58=83');
+        });
+
+        // 核心计算逻辑
+        document.querySelector('.btn-calc').addEventListener('click', calculateAll);
+
+        function calculateAll() {
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            let resultHtml = '';
+
+            // 通用工具函数：获取有效数值
+            const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+            // 通用工具函数：保留两位小数
+            const fix2 = (num) => Number(num).toFixed(2);
+
+            // 1. 直角三角形计算（全组合适配）
+            if (activeTab === 'right') {
+                const a = getVal('right-a');
+                const b = getVal('right-b');
+                const c = getVal('right-c');
+                const angleA = getVal('right-angleA');
+                const angleB = getVal('right-angleB');
+
+                // 收集有效输入
+                const valid = [];
+                if (a > 0) valid.push({type: 'a', val: a});
+                if (b > 0) valid.push({type: 'b', val: b});
+                if (c > 0) valid.push({type: 'c', val: c});
+                if (angleA > 0) valid.push({type: 'angleA', val: angleA});
+                if (angleB > 0) valid.push({type: 'angleB', val: angleB});
+
+                if (valid.length < 2) {
+                    resultHtml = '<p style="color:red">错误：请输入至少2个大于0的数值！</p>';
+                } else {
+                    let resA = a, resB = b, resC = c, resAngleA = angleA, resAngleB = angleB, resArea = 0;
+
+                    // 优先级：两边 > 边+角
+                    if (b > 0 && c > 0) { // b+c → 算a、角度
+                        resA = Math.sqrt(c**2 - b**2);
+                        resAngleB = Math.asin(b / c) * 180 / Math.PI;
+                        resAngleA = 90 - resAngleB;
+                        resArea = (resA * b) / 2;
+                    } else if (a > 0 && c > 0) { // a+c → 算b、角度
+                        resB = Math.sqrt(c**2 - a**2);
+                        resAngleA = Math.asin(a / c) * 180 / Math.PI;
+                        resAngleB = 90 - resAngleA;
+                        resArea = (a * resB) / 2;
+                    } else if (a > 0 && b > 0) { // a+b → 算c、角度
+                        resC = Math.sqrt(a**2 + b**2);
+                        resAngleA = Math.atan(a / b) * 180 / Math.PI;
+                        resAngleB = 90 - resAngleA;
+                        resArea = (a * b) / 2;
+                    } else if (b > 0 && angleB > 0) { // b+角B → 算a、c
+                        resAngleA = 90 - angleB;
+                        resA = b / Math.tan(angleB * Math.PI / 180);
+                        resC = b / Math.sin(angleB * Math.PI / 180);
+                        resArea = (resA * b) / 2;
+                    } else if (a > 0 && angleA > 0) { // a+角A → 算b、c
+                        resAngleB = 90 - angleA;
+                        resB = a / Math.tan(angleA * Math.PI / 180);
+                        resC = a / Math.sin(angleA * Math.PI / 180);
+                        resArea = (a * resB) / 2;
+                    } else if (angleA > 0 && angleB > 0) { // 两角 → 提示需要边长
+                        resultHtml = '<p style="color:red">错误：仅输入角度无法计算边长，请补充至少一条边长！</p>';
+                    }
+
+                    // 格式化结果
+                    resA = fix2(resA);
+                    resB = fix2(resB);
+                    resC = fix2(resC);
+                    resAngleA = fix2(resAngleA);
+                    resAngleB = fix2(resAngleB);
+                    resArea = fix2(resArea);
+
+                    // 回填数值
+                    document.getElementById('right-a').value = resA;
+                    document.getElementById('right-b').value = resB;
+                    document.getElementById('right-c').value = resC;
+                    document.getElementById('right-angleA').value = resAngleA;
+                    document.getElementById('right-angleB').value = resAngleB;
+                    document.getElementById('right-area').value = resArea;
+
+                    // 生成结果HTML
+                    if (!resultHtml) {
+                        resultHtml = `
+                            <p>a 边长（直角边）：${resA}</p>
+                            <p>b 边长（直角边）：${resB}</p>
+                            <p>c 边长（斜边）：${resC}</p>
+                            <p>A 角角度：${resAngleA}°</p>
+                            <p>B 角角度：${resAngleB}°</p>
+                            <p>面积：${resArea}</p>
+                        `;
+                    }
+                }
+            }
+
+            // 2. 等腰三角形计算（全组合适配）
+            else if (activeTab === 'isosceles') {
+                const ac = getVal('iso-ac'); // 腰长a=c
+                const b = getVal('iso-b');   // 底边
+                const baseAngle = getVal('iso-base-angle'); // 底角
+                const topAngle = getVal('iso-top-angle');   // 顶角
+
+                // 收集有效输入
+                const valid = [];
+                if (ac > 0) valid.push({type: 'ac', val: ac});
+                if (b > 0) valid.push({type: 'b', val: b});
+                if (baseAngle > 0) valid.push({type: 'base', val: baseAngle});
+                if (topAngle > 0) valid.push({type: 'top', val: topAngle});
+
+                if (valid.length < 2) {
+                    resultHtml = '<p style="color:red">错误：请输入至少2个大于0的数值！</p>';
+                } else {
+                    let resAC = ac, resB = b, resBase = baseAngle, resTop = topAngle, resH = 0, resArea = 0;
+
+                    // 优先级：腰长+底边 > 腰长+角度 > 底边+角度
+                    if (ac > 0 && b > 0) { // 腰长+底边 → 算角度、高、面积
+                        resBase = Math.acos((b/2) / ac) * 180 / Math.PI;
+                        resTop = 180 - 2 * resBase;
+                        resH = Math.sqrt(ac**2 - (b/2)**2);
+                        resArea = (b * resH) / 2;
+                    } else if (ac > 0 && baseAngle > 0) { // 腰长+底角 → 算底边、顶角、高、面积
+                        resTop = 180 - 2 * baseAngle;
+                        resB = 2 * ac * Math.sin(baseAngle * Math.PI / 180);
+                        resH = ac * Math.cos(baseAngle * Math.PI / 180);
+                        resArea = (resB * resH) / 2;
+                    } else if (ac > 0 && topAngle > 0) { // 腰长+顶角 → 算底边、底角、高、面积
+                        resBase = (180 - topAngle) / 2;
+                        resB = 2 * ac * Math.sin((topAngle/2) * Math.PI / 180);
+                        resH = ac * Math.cos((topAngle/2) * Math.PI / 180);
+                        resArea = (resB * resH) / 2;
+                    } else if (b > 0 && baseAngle > 0) { // 底边+底角 → 算腰长、顶角、高、面积
+                        resTop = 180 - 2 * baseAngle;
+                        resAC = (b/2) / Math.sin(baseAngle * Math.PI / 180);
+                        resH = resAC * Math.cos(baseAngle * Math.PI / 180);
+                        resArea = (b * resH) / 2;
+                    } else if (b > 0 && topAngle > 0) { // 底边+顶角 → 算腰长、底角、高、面积
+                        resBase = (180 - topAngle) / 2;
+                        resAC = (b/2) / Math.sin((topAngle/2) * Math.PI / 180);
+                        resH = resAC * Math.cos((topAngle/2) * Math.PI / 180);
+                        resArea = (b * resH) / 2;
+                    }
+
+                    // 格式化结果
+                    resAC = fix2(resAC);
+                    resB = fix2(resB);
+                    resBase = fix2(resBase);
+                    resTop = fix2(resTop);
+                    resH = fix2(resH);
+                    resArea = fix2(resArea);
+
+                    // 回填数值
+                    document.getElementById('iso-ac').value = resAC;
+                    document.getElementById('iso-b').value = resB;
+                    document.getElementById('iso-base-angle').value = resBase;
+                    document.getElementById('iso-top-angle').value = resTop;
+                    document.getElementById('iso-h').value = resH;
+                    document.getElementById('iso-area').value = resArea;
+
+                    // 生成结果HTML
+                    resultHtml = `
+                        <p>腰长（a和c）：${resAC}</p>
+                        <p>底边b：${resB}</p>
+                        <p>底角角度：${resBase}°</p>
+                        <p>顶角B角度：${resTop}°</p>
+                        <p>高h：${resH}</p>
+                        <p>面积：${resArea}</p>
+                    `;
+                }
+            }
+
+            // 3. 普通三角形计算（全组合适配）
+            else if (activeTab === 'normal') {
+                const a = getVal('norm-a');
+                const b = getVal('norm-b');
+                const c = getVal('norm-c');
+                const angleA = getVal('norm-angleA');
+                const angleB = getVal('norm-angleB');
+                const angleC = getVal('norm-angleC');
+
+                // 收集有效输入
+                const valid = [];
+                if (a > 0) valid.push({type: 'a', val: a});
+                if (b > 0) valid.push({type: 'b', val: b});
+                if (c > 0) valid.push({type: 'c', val: c});
+                if (angleA > 0) valid.push({type: 'angleA', val: angleA});
+                if (angleB > 0) valid.push({type: 'angleB', val: angleB});
+                if (angleC > 0) valid.push({type: 'angleC', val: angleC});
+
+                if (valid.length < 2) {
+                    resultHtml = '<p style="color:red">错误：请输入至少2个大于0的数值！</p>';
+                } else {
+                    let resA = a, resB = b, resC = c, resAngleA = angleA, resAngleB = angleB, resAngleC = angleC, resArea = 0;
+
+                    // 优先级：三边 > 两边+夹角 > 一边+两角 > 两边+一角
+                    if (a > 0 && b > 0 && c > 0) { // 三边 → 算角度、面积（海伦公式）
+                        resAngleA = Math.acos((b**2 + c**2 - a**2) / (2 * b * c)) * 180 / Math.PI;
+                        resAngleB = Math.acos((a**2 + c**2 - b**2) / (2 * a * c)) * 180 / Math.PI;
+                        resAngleC = 180 - resAngleA - resAngleB;
+                        const p = (a + b + c) / 2;
+                        resArea = Math.sqrt(p * (p - a) * (p - b) * (p - c));
+                    } else if (a > 0 && b > 0 && angleC > 0) { // 两边+夹角C → 算c、角度、面积
+                        resC = Math.sqrt(a**2 + b**2 - 2 * a * b * Math.cos(angleC * Math.PI / 180));
+                        resAngleA = Math.asin((a * Math.sin(angleC * Math.PI / 180)) / resC) * 180 / Math.PI;
+                        resAngleB = 180 - angleC - resAngleA;
+                        resArea = (a * b * Math.sin(angleC * Math.PI / 180)) / 2;
+                    } else if (a > 0 && c > 0 && angleB > 0) { // 两边+夹角B → 算b、角度、面积
+                        resB = Math.sqrt(a**2 + c**2 - 2 * a * c * Math.cos(angleB * Math.PI / 180));
+                        resAngleA = Math.asin((a * Math.sin(angleB * Math.PI / 180)) / resB) * 180 / Math.PI;
+                        resAngleC = 180 - angleB - resAngleA;
+                        resArea = (a * c * Math.sin(angleB * Math.PI / 180)) / 2;
+                    } else if (b > 0 && c > 0 && angleA > 0) { // 两边+夹角A → 算a、角度、面积
+                        resA = Math.sqrt(b**2 + c**2 - 2 * b * c * Math.cos(angleA * Math.PI / 180));
+                        resAngleB = Math.asin((b * Math.sin(angleA * Math.PI / 180)) / resA) * 180 / Math.PI;
+                        resAngleC = 180 - angleA - resAngleB;
+                        resArea = (b * c * Math.sin(angleA * Math.PI / 180)) / 2;
+                    } else if (a > 0 && angleA > 0 && angleB > 0) { // 一边+两角 → 算其他边、角度、面积
+                        resAngleC = 180 - angleA - angleB;
+                        resB = (a * Math.sin(angleB * Math.PI / 180)) / Math.sin(angleA * Math.PI / 180);
+                        resC = (a * Math.sin(angleC * Math.PI / 180)) / Math.sin(angleA * Math.PI / 180);
+                        resArea = (a * resB * Math.sin(angleC * Math.PI / 180)) / 2;
+                    } else if (b > 0 && angleA > 0 && angleB > 0) { // 一边+两角 → 算其他边、角度、面积
+                        resAngleC = 180 - angleA - angleB;
+                        resA = (b * Math.sin(angleA * Math.PI / 180)) / Math.sin(angleB * Math.PI / 180);
+                        resC = (b * Math.sin(angleC * Math.PI / 180)) / Math.sin(angleB * Math.PI / 180);
+                        resArea = (a * b * Math.sin(angleC * Math.PI / 180)) / 2;
+                    } else {
+                        resultHtml = '<p style="color:red">错误：输入参数组合不支持，请尝试「三边」「两边+夹角」「一边+两角」</p>';
+                    }
+
+                    // 格式化结果
+                    resA = fix2(resA);
+                    resB = fix2(resB);
+                    resC = fix2(resC);
+                    resAngleA = fix2(resAngleA);
+                    resAngleB = fix2(resAngleB);
+                    resAngleC = fix2(resAngleC);
+                    resArea = fix2(resArea);
+
+                    // 回填数值
+                    document.getElementById('norm-a').value = resA;
+                    document.getElementById('norm-b').value = resB;
+                    document.getElementById('norm-c').value = resC;
+                    document.getElementById('norm-angleA').value = resAngleA;
+                    document.getElementById('norm-angleB').value = resAngleB;
+                    document.getElementById('norm-angleC').value = resAngleC;
+                    document.getElementById('norm-area').value = resArea;
+
+                    // 生成结果HTML（未报错时）
+                    if (!resultHtml) {
+                        resultHtml = `
+                            <p>a 边长：${resA}</p>
+                            <p>b 边长：${resB}</p>
+                            <p>c 边长：${resC}</p>
+                            <p>A 角角度：${resAngleA}°</p>
+                            <p>B 角角度：${resAngleB}°</p>
+                            <p>C 角角度：${resAngleC}°</p>
+                            <p>面积：${resArea}</p>
+                        `;
+                    }
+                }
+            }
+
+            // 更新结果显示
+            document.getElementById('result-content').innerHTML = resultHtml;
+
+            // 标记有效输入框（绿色）
+            document.querySelectorAll('input').forEach(input => {
+                input.style.borderColor = (getVal(input.id) > 0) ? '#4caf50' : '#ddd';
+            });
+        }
+    </script>
+</body>
+</html>
